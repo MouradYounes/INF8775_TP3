@@ -4,6 +4,21 @@ import numpy as np
 import sys
 import math
 import random
+import itertools
+import copy
+
+# def lessFitDistrict(answer):
+#     indexDistrict = 0
+#     lessFitScore = -1
+#     for i, m in enumerate(answer):
+#         tempScore = numberWonMun(m)
+#         if lessFitScore == -1:
+#             lessFitScore = tempScore
+#         else:
+#             if tempScore < lessFitScore:
+#                 lessFitScore = tempScore
+#                 indexDistrict = i
+#     return indexDistrict
 
 def storeMunicipalities(fileName):
     with open(fileName) as f:
@@ -19,6 +34,25 @@ def manhattanDistance(municipality, district, maxDistance):
             if abs(municipality[0]- m[1]) + abs(municipality[1] - m[2]) > maxDistance:
                 return False
     return True
+
+def numberWonMun(district):
+    totalWon = 0
+    for s in district:
+        if s[0] > 50:
+            totalWon += 1
+    return totalWon
+ 
+def numberWonDistricts(answer):
+    wonDistricts = 0
+    for  m in answer:
+        if numberWonMun(m) > len(m)/2:
+            wonDistricts += 1
+    return wonDistricts
+            
+def scoreWonDistricts(answer):
+    wonDistricts = numberWonDistricts(answer)
+    score =  (wonDistricts/len(answer))*100
+    return score
 
 def initialSolution(data, numberOfCirconscriptions):
     answer = []
@@ -81,16 +115,62 @@ def initialSolution(data, numberOfCirconscriptions):
         iteration += 1
     print("length of answer: ", len(answer))
     print(answer)
+    return answer, maxDistance
+
+def getNeighbors(answer, maxDistance):
+    neighbors = {}
+    for i, district1 in enumerate(answer):
+        for j, district2 in enumerate(answer):
+            if district1 != district2:
+                c = list(itertools.product(district1, district2))
+                for pair in c:
+                    if manhattanDistance(pair[0], district2, maxDistance) and manhattanDistance(pair[1], district1, maxDistance):
+                        neighbors[(i, j)] = pair
+    return neighbors
+
+def printSolution(solution):
+    for districts in solution:
+        district_to_print = []
+        for municipality in districts:
+            district_to_print.append(str(municipality[1]))
+            district_to_print.append(str(municipality[2]))
+        print(" ".join(district_to_print))
+
+def simulatedAnnealing(data, numberOfCirconscriptions):
+    solution, maxDistance = initialSolution(data, numberOfCirconscriptions)
+    iteration = 0
+    nbOfGreenDistricts = numberWonDistricts(solution)
+    temp = 60
+    alpha = 0.1
+    score = scoreWonDistricts(solution)
+    tempSolution = copy.deepcopy(solution)
+    while iteration < 10 and nbOfGreenDistricts < numberOfCirconscriptions/2:
+        neighbors =  getNeighbors(solution, maxDistance)
+        randomNeighbor = random.choice(neighbors)
+        diff = score - scoreWonDistricts(randomNeighbor)
+        if  diff <= 0:
+            solution = randomNeighbor
+        else:
+            if iteration == 9:
+                temp += 10
+                iteration = 0
+            if random.uniform(0,1) < math.exp(diff/temp):
+                solution = randomNeighbor
+                iteration = 0
+            else:
+                iteration += 1
+        temp -= alpha
+    return solution
         
 
 def main(argv):
     data = storeMunicipalities(argv[0])
     numberOfCirconscriptions = argv[1]
-    initialSolution(data, int(numberOfCirconscriptions))
+    solution = simulatedAnnealing(data, int(numberOfCirconscriptions))
     if "-p" in argv:
-        print("Solution")
+        printSolution(solution)
     else:
-        print("total number of circonscriptions who votes for the green party")
+        print(scoreWonDistricts(solution))
 
 if __name__=="__main__":
     main(sys.argv[1:])
