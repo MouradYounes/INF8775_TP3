@@ -46,6 +46,4 @@ then
     exit 1
 fi
 
-/opt/anaconda3/bin/python main.py $PATH $C $P
-#/usr/bin/g++ --std=c++17 -O3 src/main.cpp -o main.exe
-#./main.exe $PATH $C $P
+/usr/bin/python3 main.py $PATH $C $P

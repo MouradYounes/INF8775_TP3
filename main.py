@@ -1,4 +1,4 @@
-import pandas as pd
+
 import numpy as np
 
 import sys
@@ -66,11 +66,6 @@ def initialSolution(data, numberOfCirconscriptions):
     nbOfCeil = (row * column) % numberOfCirconscriptions
     if length %2 != 0:
         k_floor = math.floor(length)
-    print("ceil: ",k_ceiling)
-    print("floor: ",k_floor)
-    print("nb of ceil: ", nbOfCeil)
-    print("max distance: ", maxDistance)
-    print(data)
     already_picked = []
     district = []
     k = k_ceiling
@@ -80,7 +75,6 @@ def initialSolution(data, numberOfCirconscriptions):
     while len(answer) < numberOfCirconscriptions:
         if iteration > 5:
             lastDistrict = answer.pop()
-            print(lastDistrict)
             for mun in lastDistrict:
                 already_picked.remove(mun)
             for mun in district:
@@ -91,7 +85,6 @@ def initialSolution(data, numberOfCirconscriptions):
             iteration = 0
         for i, row in enumerate(data):
             for j, municipality in enumerate(row):
-                #print(municipality)
                 if (municipality,i,j) not in already_picked:
                     first = (municipality,i,j)
                     if not len(district):
@@ -113,8 +106,6 @@ def initialSolution(data, numberOfCirconscriptions):
                     k = k_floor
                 break
         iteration += 1
-    print("length of answer: ", len(answer))
-    print(answer)
     return answer, maxDistance
 
 def getNeighbors(answer, maxDistance):
